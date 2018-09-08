@@ -24,14 +24,38 @@ export default class MyChat extends React.Component {
             this.currentUser.subscribeToRoom({
                 roomId: CHATKIT_ROOM_ID,
                 hooks: {
-                    onNewMessage: message => alert(message.text)
+                     onNewMessage: this.onReceive.bind(this)
                 }
             });
         });
     }
+    onReceive(data) {
+        const { id, senderId, text, createdAt } = data;
+        const incomingMessage = {
+            _id: id,
+            text: text,
+            createdAt: new Date(createdAt),
+            user: {
+                _id: senderId,
+                name: senderId,
+                avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmXGGuS_PrRhQt73sGzdZvnkQrPXvtA-9cjcPxJLhLo8rW-sVA"
+            }
+        };
+
+        this.setState(previousState => ({
+            messages: GiftedChat.append(previousState.messages, incomingMessage)
+        }));
+    }
+    onSend([message]) {
+        this.currentUser.sendMessage({
+            text: message.text,
+            roomId: CHATKIT_ROOM_ID
+        });
+    }
     render()
         {
-        return <GiftedChat messages={this.state.messages} />;
+        return <GiftedChat messages={this.state.messages} onSend={messages => this.onSend(messages)}
+       user={{ _id: CHATKIT_USER_NAME }}/>;
     }
 
 }
